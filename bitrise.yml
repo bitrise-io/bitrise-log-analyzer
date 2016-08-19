@@ -1,0 +1,26 @@
+format_version: 1.2.0
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+workflows:
+  deps-update:
+    steps:
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            rm -rf ./vendor
+            rm -rf ./Godeps
+            go get -u github.com/tools/godep
+            godep version
+            go get -u -t ./...
+            go get github.com/inconshreveable/mousetrap
+            godep save ./...
+  test:
+    steps:
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            go test ./...
