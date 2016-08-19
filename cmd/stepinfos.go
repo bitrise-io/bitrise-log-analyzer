@@ -8,9 +8,14 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/cobra"
+)
+
+var (
+	isTimeOnlyModeFlag *bool
 )
 
 // stepinfosCmd represents the stepinfos command
@@ -25,11 +30,18 @@ var stepinfosCmd = &cobra.Command{
 		}
 		logFilePath := args[0]
 
-		return filterStepInfosFromLogFile(logFilePath)
+		isTimeOnlyMode := false
+		if isTimeOnlyModeFlag != nil {
+			isTimeOnlyMode = *isTimeOnlyModeFlag
+		}
+		fmt.Println(" * isTimeOnlyMode: ", isTimeOnlyMode)
+		fmt.Println()
+
+		return filterStepInfosFromLogFile(logFilePath, isTimeOnlyMode)
 	},
 }
 
-func filterStepInfosFromLogFile(logFilePath string) error {
+func filterStepInfosFromLogFile(logFilePath string, isTimeOnlyMode bool) error {
 	file, err := os.Open(logFilePath)
 	if err != nil {
 		return fmt.Errorf("Failed to read log file (%s), error: %s", logFilePath, err)
@@ -43,7 +55,17 @@ func filterStepInfosFromLogFile(logFilePath string) error {
 		if len(trimmedLine) > 2 {
 			switch trimmedLine[0:2] {
 			case "+-", "| ":
-				fmt.Println(lineStr)
+				if isTimeOnlyMode {
+					pattern := `(?i)^\| .+\| [0-9.]+ sec  \|$`
+					// pattern := `sec`
+					if isMatch, err := regexp.MatchString(pattern, trimmedLine); err != nil {
+						return fmt.Errorf("Failed to match line (%s) with regex (%s), error: %s", lineStr, pattern, err)
+					} else if isMatch {
+						fmt.Println(lineStr)
+					}
+				} else {
+					fmt.Println(lineStr)
+				}
 			}
 		}
 	}
@@ -65,6 +87,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// stepinfosCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	isTimeOnlyModeFlag = stepinfosCmd.Flags().Bool("only-times", false, "If enabled will only print step run times")
 }
