@@ -10,22 +10,16 @@ func init() {
 	// define files
 	file2 := &embedded.EmbeddedFile{
 		Filename:    `index.html`,
-		FileModTime: time.Unix(1475618618, 0),
-		Content:     string("<html>\n<head>\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"main.css\">\n</head>\n<body>\n    Welcome!\n</body>\n</html>"),
-	}
-	file3 := &embedded.EmbeddedFile{
-		Filename:    `main.css`,
-		FileModTime: time.Unix(1475618678, 0),
-		Content:     string("body {\n    background-color: lightgreen;\n}"),
+		FileModTime: time.Unix(1475621135, 0),
+		Content:     string("<!DOCTYPE html>\n<html>\n<head>\n<!-- css -->\n<style>\nbody {\n    background-color: lightgreen;\n}\n</style>\n<!-- css [end] -->\n</head>\n<body>\n\n<h1>Welcome!</h1>\n\n<p id=\"demo\">Click the \"Send\" button</p>\n<button type=\"button\" onclick=\"sendForTest()\">Send</button>\n\n<!-- javascript -->\n<script>\nfunction sendForTest() {\n  var xhttp;\n  xhttp=new XMLHttpRequest();\n  xhttp.onreadystatechange = function() {\n    if (this.readyState == 4 && this.status == 200) {\n      var respJSON = JSON.parse(this.responseText);\n      console.log(\" -> \", respJSON);\n      document.getElementById(\"demo\").innerHTML = \"Response.message: \" + respJSON.message;\n    }\n  };\n  xhttp.open(\"GET\", \"/api/test-regex\", true);\n  xhttp.send();\n}\n\n</script>\n<!-- javascript [end] -->\n\n</body>\n</html>"),
 	}
 
 	// define dirs
 	dir1 := &embedded.EmbeddedDir{
 		Filename:   ``,
-		DirModTime: time.Unix(1475618522, 0),
+		DirModTime: time.Unix(1475619385, 0),
 		ChildFiles: []*embedded.EmbeddedFile{
 			file2, // index.html
-			file3, // main.css
 
 		},
 	}
@@ -36,13 +30,12 @@ func init() {
 	// register embeddedBox
 	embedded.RegisterEmbeddedBox(`www`, &embedded.EmbeddedBox{
 		Name: `www`,
-		Time: time.Unix(1475618522, 0),
+		Time: time.Unix(1475619385, 0),
 		Dirs: map[string]*embedded.EmbeddedDir{
 			"": dir1,
 		},
 		Files: map[string]*embedded.EmbeddedFile{
 			"index.html": file2,
-			"main.css":   file3,
 		},
 	})
 }

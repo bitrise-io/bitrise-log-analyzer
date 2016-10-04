@@ -1,8 +1,39 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="main.css">
+<!-- css -->
+<style>
+body {
+    background-color: lightgreen;
+}
+</style>
+<!-- css [end] -->
 </head>
 <body>
-    Welcome!
+
+<h1>Welcome!</h1>
+
+<p id="demo">Click the "Send" button</p>
+<button type="button" onclick="sendForTest()">Send</button>
+
+<!-- javascript -->
+<script>
+function sendForTest() {
+  var xhttp;
+  xhttp=new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      var respJSON = JSON.parse(this.responseText);
+      console.log(" -> ", respJSON);
+      document.getElementById("demo").innerHTML = "Response.message: " + respJSON.message;
+    }
+  };
+  xhttp.open("GET", "/api/test-regex", true);
+  xhttp.send();
+}
+
+</script>
+<!-- javascript [end] -->
+
 </body>
 </html>
