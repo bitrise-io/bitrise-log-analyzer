@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/GeertJohan/go.rice"
 )
 
 const defaultPort = "3000"
@@ -36,10 +38,7 @@ func LaunchEditor() error {
 	port := envString("PORT", defaultPort)
 	log.Printf("Starting web IDE at http://localhost:%s", port)
 
-	// _, filename, _, _ := runtime.Caller(1)
-	// fs := http.FileServer(http.Dir(path.Join(filepath.Dir(filename), "www")))
-
-	// http.Handle("/", fs)
+	http.Handle("/", http.FileServer(rice.MustFindBox("www").HTTPBox()))
 	http.HandleFunc("/api/test-regex", testRegexHandler)
 
 	if err := http.ListenAndServe(":"+port, nil); err != nil {

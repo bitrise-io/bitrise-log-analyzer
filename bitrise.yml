@@ -16,6 +16,7 @@ workflows:
             go get -u -t ./...
             go get github.com/inconshreveable/mousetrap
             godep save ./...
+
   test:
     steps:
     - script:
@@ -24,3 +25,14 @@ workflows:
             #!/bin/bash
             set -ex
             go test ./...
+
+  assets-precompile:
+    steps:
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            go get github.com/GeertJohan/go.rice/rice
+            cd ./editor
+            rice embed-go
