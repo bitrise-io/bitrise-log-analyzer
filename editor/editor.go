@@ -6,18 +6,31 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 
 	"github.com/GeertJohan/go.rice"
+	"github.com/bitrise-io/go-utils/readerutil"
 )
 
 const defaultPort = "3000"
 
-// RegexResponse ...
-type RegexResponse struct {
+// SimpleResponse ...
+type SimpleResponse struct {
 	Message string `json:"message"`
 }
 
-func respondWith(w http.ResponseWriter, httpStatusCode int, respModel interface{}) {
+// RegexRequestModel ...
+type RegexRequestModel struct {
+	Log     string `json:"log"`
+	Pattern string `json:"pattern"`
+}
+
+// RegexResponseModel ...
+type RegexResponseModel struct {
+	Matches []string `json:"matches"`
+}
+
+func respondWithJSON(w http.ResponseWriter, httpStatusCode int, respModel interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpStatusCode)
 	if err := json.NewEncoder(w).Encode(&respModel); err != nil {
@@ -25,12 +38,61 @@ func respondWith(w http.ResponseWriter, httpStatusCode int, respModel interface{
 	}
 }
 
+func respondWithErrorMessage(w http.ResponseWriter, format string, v ...interface{}) {
+	respondWithJSON(w, 400, SimpleResponse{
+		Message: fmt.Sprintf(format, v...),
+	})
+}
+
+func respondWithSuccessMessage(w http.ResponseWriter, format string, v ...interface{}) {
+	respondWithSuccess(w, SimpleResponse{
+		Message: fmt.Sprintf(format, v...),
+	})
+}
+
+func respondWithSuccess(w http.ResponseWriter, obj interface{}) {
+	respondWithJSON(w, 200, obj)
+}
+
 func testRegexHandler(w http.ResponseWriter, r *http.Request) {
-	resp := RegexResponse{
-		Message: "test",
+	fmt.Println()
+	log.Println("=> Request")
+	if r.Method != "POST" {
+		respondWithErrorMessage(w, "Invalid method, only POST is accepted")
+		return
 	}
 
-	respondWith(w, 200, resp)
+	defer r.Body.Close()
+	var reqObj RegexRequestModel
+	if err := json.NewDecoder(r.Body).Decode(&reqObj); err != nil {
+		respondWithErrorMessage(w, "Failed to read JSON input, error: %s", err)
+		return
+	}
+
+	log.Println(" -> Pattern: ", reqObj.Pattern)
+	re, err := regexp.Compile(reqObj.Pattern)
+	if err != nil {
+		respondWithErrorMessage(w, "Invalid Pattern, error: %s", err)
+		return
+	}
+
+	log.Println(" -> Log: ", reqObj.Log)
+	matches := []string{}
+	err = readerutil.WalkLinesString(reqObj.Log, func(line string) error {
+		lineMatches := re.FindAllString(line, -1)
+		if len(lineMatches) > 0 {
+			matches = append(matches, lineMatches...)
+		}
+		return nil
+	})
+	if err != nil {
+		respondWithErrorMessage(w, "Failed to walk through the log, error: %s", err)
+		return
+	}
+
+	log.Printf(" -> matches: %+v", matches)
+
+	respondWithJSON(w, 200, RegexResponseModel{Matches: matches})
 }
 
 // LaunchEditor ...
