@@ -15,6 +15,10 @@
 			"Rev": "9fdfd46f9806a9228aae341d65ab75c5235c383c"
 		},
 		{
+			"ImportPath": "github.com/bitrise-io/go-utils/readerutil",
+			"Rev": "04ba16d19fbae012aeff4890bb080b21df91df46"
+		},
+		{
 			"ImportPath": "github.com/daaku/go.zipexe",
 			"Rev": "a5fe2436ffcb3236e175e5149162b41cd28bd27d"
 		},
