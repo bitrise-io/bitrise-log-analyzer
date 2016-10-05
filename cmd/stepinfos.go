@@ -54,7 +54,7 @@ func filterStepInfosFromLogFile(logFilePath string, isTimeOnlyMode bool) error {
 			switch trimmedLine[0:2] {
 			case "+-", "| ":
 				if isTimeOnlyMode {
-					pattern := `(?i)^\| .+\| [0-9.]+ sec  \|$`
+					pattern := `(?i)^\| .+\| [0-9.]+ sec[[:space:]]*\|$`
 					if isMatch, err := regexp.MatchString(pattern, trimmedLine); err != nil {
 						return fmt.Errorf("Failed to match line (%s) with regex (%s), error: %s", line, pattern, err)
 					} else if isMatch {
