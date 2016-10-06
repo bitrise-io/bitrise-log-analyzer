@@ -62,7 +62,12 @@ func testRegexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer r.Body.Close()
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			log.Println(" [!] Failed to close request body, error: ", err)
+		}
+	}()
+
 	var reqObj RegexRequestModel
 	if err := json.NewDecoder(r.Body).Decode(&reqObj); err != nil {
 		respondWithErrorMessage(w, "Failed to read JSON input, error: %s", err)

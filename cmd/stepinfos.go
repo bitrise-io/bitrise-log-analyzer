@@ -6,6 +6,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -46,7 +47,11 @@ func filterStepInfosFromLogFile(logFilePath string, isTimeOnlyMode bool) error {
 	if err != nil {
 		return fmt.Errorf("Failed to read log file (%s), error: %s", logFilePath, err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Println(" [!] Failed to close file, error: ", err)
+		}
+	}()
 
 	err = readerutil.WalkLines(file, func(line string) error {
 		trimmedLine := strings.TrimSpace(line)
