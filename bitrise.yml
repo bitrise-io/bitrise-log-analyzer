@@ -4,7 +4,8 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 workflows:
   ci:
     before_run:
-    - test
+    - _install_test_tools
+    - _test
 
   deps-update:
     steps:
@@ -21,15 +22,6 @@ workflows:
             go get github.com/inconshreveable/mousetrap
             godep save ./...
 
-  test:
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            go test ./...
-
   assets-precompile:
     steps:
     - script:
@@ -40,3 +32,64 @@ workflows:
             go get github.com/GeertJohan/go.rice/rice
             cd ./editor
             rice embed-go
+
+  _install_test_tools:
+    steps:
+    - script:
+        title: Install required testing tools
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            # Check for unhandled errors
+            go get -u github.com/kisielk/errcheck
+            # Go lint
+            go get -u github.com/golang/lint/golint
+
+  _test:
+    steps:
+    - script:
+        title: GOLIST_WITHOUT_VENDOR
+        inputs:
+        - content: |-
+            set -ex
+            no_vendor_paths="$(go list ./... | grep -v vendor)"
+            envman add --key GOLIST_WITHOUT_VENDOR --value "$no_vendor_paths"
+    - script:
+        title: Go Test
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            # go test $GOLIST_WITHOUT_VENDOR
+            go test ./...
+    - script:
+        title: Go Vet
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            go vet $GOLIST_WITHOUT_VENDOR
+    - script:
+        title: Err check
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            errcheck -asserts=true -blank=true $GOLIST_WITHOUT_VENDOR
+    - script:
+        title: Go Lint
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -e
+
+            while read -r line; do
+              echo "-> Linting: $line"
+              golint_out="$(golint $line)"
+              if [[ "${golint_out}" != "" ]] ; then
+                echo "=> Golint issues found:"
+                echo "${golint_out}"
+                exit 1
+              fi
+            done <<< "$GOLIST_WITHOUT_VENDOR"
