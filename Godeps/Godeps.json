@@ -7,16 +7,36 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/GeertJohan/go.rice",
+			"Rev": "9fdfd46f9806a9228aae341d65ab75c5235c383c"
+		},
+		{
+			"ImportPath": "github.com/GeertJohan/go.rice/embedded",
+			"Rev": "9fdfd46f9806a9228aae341d65ab75c5235c383c"
+		},
+		{
+			"ImportPath": "github.com/bitrise-io/go-utils/readerutil",
+			"Rev": "d827dd24bff248a9271a2ea99866280414138381"
+		},
+		{
+			"ImportPath": "github.com/daaku/go.zipexe",
+			"Rev": "a5fe2436ffcb3236e175e5149162b41cd28bd27d"
+		},
+		{
 			"ImportPath": "github.com/inconshreveable/mousetrap",
 			"Rev": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
 		},
 		{
+			"ImportPath": "github.com/kardianos/osext",
+			"Rev": "c2c54e542fb797ad986b31721e1baedf214ca413"
+		},
+		{
 			"ImportPath": "github.com/spf13/cobra",
-			"Rev": "7c674d9e72017ed25f6d2b5e497a1368086b6a6f"
+			"Rev": "9c28e4bbd74e5c3ed7aacbc552b2cab7cfdfe744"
 		},
 		{
 			"ImportPath": "github.com/spf13/pflag",
-			"Rev": "4f9190456aed1c2113ca51ea9b89219747458dc1"
+			"Rev": "c7e63cf4530bcd3ba943729cee0efeff2ebea63f"
 		}
 	]
 }

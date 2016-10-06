@@ -4,13 +4,13 @@
 package cmd
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"os"
 	"regexp"
 	"strings"
 
+	"github.com/bitrise-io/go-utils/readerutil"
 	"github.com/spf13/cobra"
 )
 
@@ -48,29 +48,26 @@ func filterStepInfosFromLogFile(logFilePath string, isTimeOnlyMode bool) error {
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lineStr := scanner.Text()
-		trimmedLine := strings.TrimSpace(lineStr)
+	err = readerutil.WalkLines(file, func(line string) error {
+		trimmedLine := strings.TrimSpace(line)
 		if len(trimmedLine) > 2 {
 			switch trimmedLine[0:2] {
 			case "+-", "| ":
 				if isTimeOnlyMode {
-					pattern := `(?i)^\| .+\| [0-9.]+ sec  \|$`
-					// pattern := `sec`
+					pattern := `(?i)^\| .+\| [0-9.]+ sec[[:space:]]*\|$`
 					if isMatch, err := regexp.MatchString(pattern, trimmedLine); err != nil {
-						return fmt.Errorf("Failed to match line (%s) with regex (%s), error: %s", lineStr, pattern, err)
+						return fmt.Errorf("Failed to match line (%s) with regex (%s), error: %s", line, pattern, err)
 					} else if isMatch {
-						fmt.Println(lineStr)
+						fmt.Println(line)
 					}
 				} else {
-					fmt.Println(lineStr)
+					fmt.Println(line)
 				}
 			}
 		}
-	}
-
-	if err := scanner.Err(); err != nil {
+		return nil
+	})
+	if err != nil {
 		return fmt.Errorf("Failed to scan through the file (%s), error: %s", logFilePath, err)
 	}
 	return nil

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- css -->
+<style>
+body {
+    background-color: lightgreen;
+}
+</style>
+<!-- css [end] -->
+</head>
+<body>
+
+<h1>Welcome!</h1>
+
+<textarea id="log-input" placeholder="drop your log in there" style="width: 100%"></textarea>
+<input id="pattern" type="text" placeholder="pattern"></input>
+<button id="submit" type="button" onclick="sendForTest()">Send</button>
+
+<h2>Results:</h2>
+<ul id="results-list">
+</ul>
+
+<!-- javascript -->
+<script>
+document.getElementById("pattern").addEventListener("keyup", function(event) {
+    event.preventDefault();
+    if (event.keyCode == 13) {
+        document.getElementById("submit").click();
+    }
+});
+
+function sendForTest() {
+  var xhttp;
+  xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      var respJSON = JSON.parse(this.responseText);
+      console.log(" -> respJSON:", respJSON);
+
+      // results
+      var resultsListElem = document.getElementById("results-list")
+      // clear out results
+      while (resultsListElem.hasChildNodes()) {
+        resultsListElem.removeChild(resultsListElem.firstChild);
+      }
+      // add new ones
+      var matches = respJSON.matches;
+      if (!matches) {
+        matches = ["NO MATCH!"]
+      }
+      for (var i = 0; i < matches.length; i++) {
+        var aMatch = matches[i]
+        var liElem = document.createElement("LI");
+        liElem.innerHTML = aMatch
+        resultsListElem.appendChild(liElem);
+      }
+    }
+  };
+  xhttp.open("POST", "/api/test-regex", true);
+  xhttp.send(JSON.stringify({
+    log: document.getElementById("log-input").value,
+    pattern: document.getElementById("pattern").value
+  }));
+}
+
+</script>
+<!-- javascript [end] -->
+
+</body>
+</html>
