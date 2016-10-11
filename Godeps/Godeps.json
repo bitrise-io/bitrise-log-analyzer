@@ -16,7 +16,7 @@
 		},
 		{
 			"ImportPath": "github.com/bitrise-io/go-utils/readerutil",
-			"Rev": "d827dd24bff248a9271a2ea99866280414138381"
+			"Rev": "4b0a3d3ec144ab85f08d3cd9caf7fba8c38ed5e8"
 		},
 		{
 			"ImportPath": "github.com/daaku/go.zipexe",
@@ -32,11 +32,11 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/cobra",
-			"Rev": "9c28e4bbd74e5c3ed7aacbc552b2cab7cfdfe744"
+			"Rev": "ec2fe7859914a5106dcab4e7901633d959bfc2f4"
 		},
 		{
 			"ImportPath": "github.com/spf13/pflag",
-			"Rev": "c7e63cf4530bcd3ba943729cee0efeff2ebea63f"
+			"Rev": "bf8481a6aebc13a8aab52e699ffe2e79771f5a3f"
 		}
 	]
 }
