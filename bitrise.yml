@@ -96,10 +96,5 @@ workflows:
 
             while read -r line; do
               echo "-> Linting: $line"
-              golint_out="$(golint $line)"
-              if [[ "${golint_out}" != "" ]] ; then
-                echo "=> Golint issues found:"
-                echo "${golint_out}"
-                exit 1
-              fi
+              golint -set_exit_status $line
             done <<< "$GOLIST_WITHOUT_VENDOR"
