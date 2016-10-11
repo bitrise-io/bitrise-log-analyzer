@@ -92,9 +92,16 @@ workflows:
         inputs:
         - content: |-
             #!/bin/bash
-            set -e
+            set -ex
 
+            # remove generated files for lint
+            # (these would not pass lint)
+            rm ./scanner/loglinetype_string.go
+
+            # lint
             while read -r line; do
-              echo "-> Linting: $line"
               golint -set_exit_status $line
             done <<< "$GOLIST_WITHOUT_VENDOR"
+
+            # re-generate
+            go generate ./...
