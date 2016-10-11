@@ -102,4 +102,39 @@ this should match`))
 				{Lines: []string{"this should", "as well", "match"}},
 			}, matcher.Results())
 	}
+
+	t.Log("Multi-line input text - empty line - match")
+	{
+		// empty lines have to be explicitely listed in the pattern.Lines
+		matcher := NewMatcher([]Model{
+			{Lines: []string{
+				"this should",
+				"",
+				"match",
+			}},
+		})
+		require.NoError(t, matcher.ProcessText(`this should be catched,
+
+this should match`))
+		testutil.EqualSlicesWithoutOrder(t,
+			[]Model{
+				{Lines: []string{"this should", "", "match"}},
+			}, matcher.Results())
+	}
+
+	t.Log("Multi-line input text - empty line - dont match")
+	{
+		matcher := NewMatcher([]Model{
+			{Lines: []string{
+				"this should",
+				"match",
+			}},
+		})
+		require.NoError(t, matcher.ProcessText(`this should be catched,
+
+this should match`))
+		testutil.EqualSlicesWithoutOrder(t,
+			[]Model{},
+			matcher.Results())
+	}
 }
