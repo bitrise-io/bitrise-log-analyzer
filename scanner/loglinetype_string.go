@@ -4,9 +4,9 @@ package scanner
 
 import "fmt"
 
-const _LogLineType_name = "BeforeFirstStepStepInfoStepLogSummaryAfterSummary"
+const _LogLineType_name = "BeforeFirstStepStepInfoHeaderStepLogStepInfoFooterBetweenStepsBuildSummaryStepInfoHeaderOrBuildSummarySectionStarterAfterBuildSummary"
 
-var _LogLineType_index = [...]uint8{0, 15, 23, 30, 37, 49}
+var _LogLineType_index = [...]uint8{0, 15, 29, 36, 50, 62, 74, 116, 133}
 
 func (i LogLineType) String() string {
 	if i < 0 || i >= LogLineType(len(_LogLineType_index)-1) {
