@@ -15,7 +15,7 @@ func Test_Matcher_ProcessText(t *testing.T) {
 		require.Equal(t, []Model{}, matcher.Results())
 	}
 
-	t.Log("One liner - single match")
+	t.Log("One liner text - single match")
 	{
 		matcher := NewMatcher([]Model{
 			{Line: "match"},
@@ -25,7 +25,7 @@ func Test_Matcher_ProcessText(t *testing.T) {
 		require.Equal(t, []Model{{Line: "match"}}, matcher.Results())
 	}
 
-	t.Log("One liner - single match - same pattern multiple times - result should only include it once")
+	t.Log("One liner text - single match - same pattern multiple times - result should only include it once")
 	{
 		matcher := NewMatcher([]Model{
 			{Line: "match"},
@@ -34,7 +34,7 @@ func Test_Matcher_ProcessText(t *testing.T) {
 		require.Equal(t, []Model{{Line: "match"}}, matcher.Results())
 	}
 
-	t.Log("One liner - multi match")
+	t.Log("One liner text - multi single line match")
 	{
 		matcher := NewMatcher([]Model{
 			{Line: "should"},
@@ -44,7 +44,7 @@ func Test_Matcher_ProcessText(t *testing.T) {
 		testutil.EqualSlicesWithoutOrder(t, []Model{{Line: "should"}, {Line: "match"}}, matcher.Results())
 	}
 
-	t.Log("Multi liner - no match")
+	t.Log("Multi liner text - no match")
 	{
 		matcher := NewMatcher([]Model{
 			{Line: "nothing should match this"},
@@ -55,7 +55,7 @@ and the third line`))
 		testutil.EqualSlicesWithoutOrder(t, []Model{}, matcher.Results())
 	}
 
-	t.Log("Multi liner - multi match")
+	t.Log("Multi liner text - multi single line match")
 	{
 		matcher := NewMatcher([]Model{
 			{Line: "should"},
