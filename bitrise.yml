@@ -94,14 +94,14 @@ workflows:
             #!/bin/bash
             set -ex
 
-            # remove generated files for lint
+            # temporarily move/ignore generated files for lint
             # (these would not pass lint)
-            rm ./scanner/loglinetype_string.go
+            mv ./scanner/loglinetype_string.go ./scanner/_loglinetype_string.go
 
             # lint
             while read -r line; do
               golint -set_exit_status $line
             done <<< "$GOLIST_WITHOUT_VENDOR"
 
-            # re-generate
-            go generate ./...
+            # move back
+            mv ./scanner/_loglinetype_string.go ./scanner/loglinetype_string.go
