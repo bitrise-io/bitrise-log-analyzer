@@ -7,6 +7,16 @@ workflows:
     - _install_test_tools
     - _test
 
+  install:
+    steps:
+    - script:
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -ex
+            go generate ./...
+            go install
+
   deps-update:
     steps:
     - script:
