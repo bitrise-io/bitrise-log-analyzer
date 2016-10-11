@@ -14,6 +14,7 @@ workflows:
         - content: |
             #!/bin/bash
             set -ex
+            go get golang.org/x/tools/cmd/stringer
             go generate ./...
             go install
 
