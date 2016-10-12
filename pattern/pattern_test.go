@@ -137,4 +137,38 @@ this should match`))
 			[]Model{},
 			matcher.Results())
 	}
+
+	//
+	t.Log("Regex examples")
+	{
+		for pattern, isShouldMatch := range map[string]bool{
+			// match
+			"example":                     true,
+			"(?i)EXAMPLE":                 true, // case insensitive
+			"^an example":                 true,
+			"^an example.+$":              true,
+			"with numbers: [[:digit:]]+$": true,
+			"with numbers: ":              true,
+			// no match
+			"EXAMPLE":         false,
+			"^example$":       false,
+			"with numbers: $": false,
+		} {
+			t.Log(" * pattern:", pattern)
+			t.Log("   should match?:", isShouldMatch)
+			matcher := NewMatcher([]Model{
+				{Lines: []string{pattern}},
+			})
+			require.NoError(t, matcher.ProcessText(`an example line, with numbers: 123`))
+			if isShouldMatch {
+				require.Equal(t,
+					[]Model{{Lines: []string{pattern}}},
+					matcher.Results())
+			} else {
+				require.Equal(t,
+					[]Model{},
+					matcher.Results())
+			}
+		}
+	}
 }
