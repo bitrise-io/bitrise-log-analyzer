@@ -107,6 +107,9 @@ func WalkLog(logReader io.Reader, walkFn WalkLogFn) error {
 			if regexListMatch(line, stepFooterIndicatorPatterns) {
 				currLogLineType = StepInfoFooter
 			}
+			if regexListMatch(line, stepInfoHeaderOrBuildSummarySectionStarterPatterns) {
+				currLogLineType = StepInfoHeaderOrBuildSummarySectionStarter
+			}
 		case StepInfoFooter:
 			if !regexListMatch(line, stepFooterIndicatorPatterns) {
 				currLogLineType = BetweenSteps
