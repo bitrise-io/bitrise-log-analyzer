@@ -76,7 +76,7 @@ func WalkLog(logReader io.Reader, walkFn WalkLogFn) error {
 	}
 	stepFooterIndicatorPatterns := []*regexp.Regexp{
 		regexp.MustCompile(`\|                                                                              \|`),
-		regexp.MustCompile(`\+----\+--------------------------------------------------------------\+----------\+`),
+		regexp.MustCompile(`\+---\+---------------------------------------------------------------\+----------\+`),
 		regexp.MustCompile(`\|.+\|.+[[:space:]]+\| [0-9\.]+ sec[[:space:]]+\|`),
 	}
 	buildSummaryIndicatorPatterns := []*regexp.Regexp{
@@ -84,7 +84,7 @@ func WalkLog(logReader io.Reader, walkFn WalkLogFn) error {
 	}
 	buildSummaryAdditionalPatterns := []*regexp.Regexp{
 		regexp.MustCompile(`\| .* \|`),
-		regexp.MustCompile(`\+----\+--------------------------------------------------------------\+----------\+`),
+		regexp.MustCompile(`\+---\+---------------------------------------------------------------\+----------\+`),
 		regexp.MustCompile(`\|    \| title                                                        \| time \(s\) \|`),
 		regexp.MustCompile(`\+------------------------------------------------------------------------------\+`),
 	}
@@ -126,6 +126,10 @@ func WalkLog(logReader io.Reader, walkFn WalkLogFn) error {
 		case BuildSummary:
 			if !regexListMatch(line, buildSummaryAdditionalPatterns) {
 				currLogLineType = AfterBuildSummary
+			}
+		case AfterBuildSummary:
+			if regexListMatch(line, stepFooterIndicatorPatterns) {
+				currLogLineType = StepInfoFooter
 			}
 		}
 
