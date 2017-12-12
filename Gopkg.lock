@@ -10,8 +10,8 @@
 [[projects]]
   branch = "master"
   name = "github.com/bitrise-io/go-utils"
-  packages = ["builtinutil","readerutil","testutil"]
-  revision = "40d129e4d39a634f03a953f0585794448350add1"
+  packages = ["builtinutil","command","command/git","errorutil","pathutil","readerutil","testutil"]
+  revision = "e2d40cad7992353c1f14cc24c86638d9e164bf52"
 
 [[projects]]
   branch = "master"
@@ -64,6 +64,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e4ff78587c2bc2490b298ae4b68e1eeffd87aff209a66f6be47d30a1e9f4eaeb"
+  inputs-digest = "836a6ec446cb1724a5de5f96d548110e524b1441a9b71cc558b00c2b34754b20"
   solver-name = "gps-cdcl"
   solver-version = 1

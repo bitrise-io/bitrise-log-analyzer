@@ -4,13 +4,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
+	"os"
+	"path/filepath"
 	"regexp"
 
+	"github.com/bitrise-io/go-utils/command/git"
 	"github.com/bitrise-tools/bitrise-log-analyzer/build"
 )
 
-const DBUrl = "https://gist.githubusercontent.com/kdobmayer/bea24c0d9b4cd9d6ee5011a4df11e5c8/raw/bea631ad937f0d858c0197036d9e059de577c443/log_analyzer.json"
+const repo = "https://github.com/bitrise-tools/bitrise-log-analyzer-patterns.git"
+
+var workDir = filepath.Join(os.Getenv("HOME"), ".bitrise-log-analyzer")
 
 type DataBase struct {
 	Data []Item `json:"data"`
@@ -37,23 +41,39 @@ func (db DataBase) Search(step build.Step) (string, error) {
 	return "", errors.New("no matches found")
 }
 
-func New(url string) (DataBase, error) {
+func New() (DataBase, error) {
 	var db DataBase
-	if err := download(url, &db); err != nil {
+	if err := initRepo(); err != nil {
+		return DataBase{}, err
+	}
+
+	patternsPath := filepath.Join(workDir, "patterns.json")
+	patternsFile, err := os.Open(patternsPath)
+	if err != nil {
+		return DataBase{}, err
+	}
+	defer func() {
+		if cerr := patternsFile.Close(); err == nil {
+			err = cerr
+		}
+	}()
+
+	if err := json.NewDecoder(patternsFile).Decode(&db); err != nil {
 		return DataBase{}, err
 	}
 	return db, nil
 }
 
-func download(url string, db *DataBase) (err error) {
-	resp, err := http.Get(url)
+func initRepo() error {
+	var g git.Git
+	g, err := git.New(workDir)
 	if err != nil {
-		return fmt.Errorf("failed to download url %q: %v", url, err)
+		return err
 	}
-	defer func() {
-		if cerr := resp.Body.Close(); err == nil {
-			err = cerr
-		}
-	}()
-	return json.NewDecoder(resp.Body).Decode(db)
+
+	if file, err := os.Stat(filepath.Join(workDir, ".git")); err == nil && file.IsDir() {
+		return g.Pull().SetStdout(os.Stdout).SetStderr(os.Stderr).Run()
+	}
+
+	return g.Clone(repo).SetStdout(os.Stdout).SetStderr(os.Stderr).Run()
 }

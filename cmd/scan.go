@@ -112,9 +112,6 @@ func search(cmd *cobra.Command, args []string) error {
 
 func initDB(cmd *cobra.Command, args []string) error {
 	var err error
-	db, err = database.New(database.DBUrl)
-	if err != nil {
-		return fmt.Errorf("can't create db: %v", err)
-	}
-	return nil
+	db, err = database.New()
+	return err
 }
