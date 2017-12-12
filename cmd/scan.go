@@ -13,22 +13,80 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var steps = []build.Step{}
-var db database.DataBase
-
 // scanCmd represents the scan command
 var scanCmd = &cobra.Command{
-	Use:               "scan",
-	Short:             "Scan a log",
-	Long:              `Scan a log`,
-	Args:              cobra.MinimumNArgs(1),
-	PersistentPreRunE: initDB,
-	PreRunE:           scan,
-	RunE:              search,
+	Use:   "scan",
+	Short: "Scan a log",
+	Long:  `Scan a log`,
+	Args:  cobra.MinimumNArgs(1),
+	RunE:  scan,
 }
 
 func init() {
 	RootCmd.AddCommand(scanCmd)
+}
+
+func scan(cmd *cobra.Command, args []string) error {
+	logFilePath := args[0]
+
+	db, err := database.New()
+	if err != nil {
+		return err
+	}
+
+	steps := []build.Step{}
+	scanned := true
+	var currentStep *build.Step
+
+	if err := scanner.WalkLogFile(logFilePath, func(line string, lineType scanner.LogLineType) {
+		switch lineType {
+		case scanner.StepInfoHeader:
+			if scanned {
+				scanned = false
+				currentStep = new(build.Step)
+			} else if strings.HasPrefix(line, "| id:") {
+				currentStep.ID = parseHeader(line, "id")
+			} else if strings.HasPrefix(line, "| version:") {
+				currentStep.Version = parseHeader(line, "version")
+			}
+			return
+		case scanner.StepLog:
+			currentStep.Lines = append(currentStep.Lines, line)
+		case scanner.StepInfoFooter:
+			if strings.HasPrefix(line, "| \x1b[") {
+				currentStep.Status = status(line)
+				dur, err := duration(line)
+				if err != nil {
+					fmt.Printf("Can't get duration from %s, error: %v\n", line, err)
+				}
+				currentStep.Duration = dur
+				steps = append(steps, *currentStep)
+			}
+		}
+		scanned = true
+	}); err != nil {
+		return err
+	}
+
+	return search(db, steps)
+}
+
+func search(db database.DataBase, steps []build.Step) error {
+	for _, step := range steps {
+		if step.Status == build.Failed {
+			fmt.Println("Failed step:")
+			fmt.Printf("- id: %s\n- duration: %v\n\nLog:\n%s\n",
+				step.ID, step.Duration, strings.Join(step.Lines, "\n"))
+
+			answer, err := db.Search(step)
+			if err != nil {
+				return fmt.Errorf("can't find possible solution: %v", err)
+			}
+			fmt.Printf("\nPossible solution:\n%s\n", answer)
+			return nil
+		}
+	}
+	return errors.New("There was no failed step")
 }
 
 func parseHeader(line, field string) string {
@@ -56,62 +114,4 @@ func status(line string) build.Status {
 	default:
 		return build.Skipped
 	}
-}
-
-func scan(cmd *cobra.Command, args []string) error {
-	logFilePath := args[0]
-	scanned := true
-	var currentStep *build.Step
-
-	return scanner.WalkLogFile(logFilePath, func(line string, lineType scanner.LogLineType) {
-		switch lineType {
-		case scanner.StepInfoHeader:
-			if scanned {
-				scanned = false
-				currentStep = new(build.Step)
-			} else if strings.HasPrefix(line, "| id:") {
-				currentStep.ID = parseHeader(line, "id")
-			} else if strings.HasPrefix(line, "| version:") {
-				currentStep.Version = parseHeader(line, "version")
-			}
-			return
-		case scanner.StepLog:
-			currentStep.Lines = append(currentStep.Lines, line)
-		case scanner.StepInfoFooter:
-			if strings.HasPrefix(line, "| \x1b[") {
-				currentStep.Status = status(line)
-				dur, err := duration(line)
-				if err != nil {
-					fmt.Printf("Can't get duration from %s, error: %v\n", line, err)
-				}
-				currentStep.Duration = dur
-				steps = append(steps, *currentStep)
-			}
-		}
-		scanned = true
-	})
-}
-
-func search(cmd *cobra.Command, args []string) error {
-	for _, step := range steps {
-		if step.Status == build.Failed {
-			fmt.Println("Failed step:")
-			fmt.Printf("- id: %s\n- duration: %v\n\nLog:\n%s\n",
-				step.ID, step.Duration, strings.Join(step.Lines, "\n"))
-
-			answer, err := db.Search(step)
-			if err != nil {
-				return fmt.Errorf("can't find possible solution: %v", err)
-			}
-			fmt.Printf("\nPossible solution:\n%s\n", answer)
-			return nil
-		}
-	}
-	return errors.New("There was no failed step")
-}
-
-func initDB(cmd *cobra.Command, args []string) error {
-	var err error
-	db, err = database.New()
-	return err
 }
