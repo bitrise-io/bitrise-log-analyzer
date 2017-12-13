@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bitrise-tools/bitrise-log-analyzer/build"
-	"github.com/bitrise-tools/bitrise-log-analyzer/database"
 	"github.com/bitrise-tools/bitrise-log-analyzer/scanner"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +31,7 @@ func init() {
 func scan(cmd *cobra.Command, args []string) error {
 	logFilePath := args[0]
 
-	db, err := database.New()
+	db, err := scanner.NewDatabase()
 	if err != nil {
 		return err
 	}
@@ -52,16 +50,16 @@ func scan(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	steps := []build.Step{}
+	steps := []scanner.Step{}
 	scanned := true
-	var currentStep *build.Step
+	var currentStep *scanner.Step
 
 	if err := scanner.WalkLogFile(logFilePath, func(line string, lineType scanner.LogLineType) {
 		switch lineType {
 		case scanner.StepInfoHeader:
 			if scanned {
 				scanned = false
-				currentStep = new(build.Step)
+				currentStep = new(scanner.Step)
 			} else if strings.HasPrefix(line, "| id:") {
 				currentStep.ID = parseHeader(line, "id")
 			} else if strings.HasPrefix(line, "| version:") {
@@ -89,9 +87,9 @@ func scan(cmd *cobra.Command, args []string) error {
 	return search(db, steps)
 }
 
-func search(db database.DataBase, steps []build.Step) error {
+func search(db scanner.Database, steps []scanner.Step) error {
 	for _, step := range steps {
-		if step.Status == build.Failed {
+		if step.Status == scanner.Failed {
 			fmt.Println("Failed step:")
 			fmt.Printf("- id: %s\n- duration: %v\n\nLog:\n%s\n",
 				step.ID, step.Duration, strings.Join(step.Lines, "\n"))
@@ -123,13 +121,13 @@ func duration(line string) (time.Duration, error) {
 	return time.Duration(durationAsFloat*1000) * time.Millisecond, nil
 }
 
-func status(line string) build.Status {
+func status(line string) scanner.Status {
 	switch {
-	case strings.Contains(line, string(build.Red)):
-		return build.Failed
-	case strings.Contains(line, string(build.Green)):
-		return build.Success
+	case strings.Contains(line, string(scanner.Red)):
+		return scanner.Failed
+	case strings.Contains(line, string(scanner.Green)):
+		return scanner.Success
 	default:
-		return build.Skipped
+		return scanner.Skipped
 	}
 }
