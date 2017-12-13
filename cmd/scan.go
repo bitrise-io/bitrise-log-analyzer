@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +13,8 @@ import (
 	"github.com/bitrise-tools/bitrise-log-analyzer/scanner"
 	"github.com/spf13/cobra"
 )
+
+var raw *bool
 
 // scanCmd represents the scan command
 var scanCmd = &cobra.Command{
@@ -24,6 +27,7 @@ var scanCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(scanCmd)
+	raw = scanCmd.Flags().Bool("raw", false, "raw log")
 }
 
 func scan(cmd *cobra.Command, args []string) error {
@@ -32,6 +36,20 @@ func scan(cmd *cobra.Command, args []string) error {
 	db, err := database.New()
 	if err != nil {
 		return err
+	}
+
+	if *raw {
+		content, err := ioutil.ReadFile(logFilePath)
+		if err != nil {
+			return err
+		}
+		lines := strings.Split(string(content), "\n")
+		answer, err := db.Search(lines)
+		if err != nil {
+			return fmt.Errorf("can't find possible solution: %v", err)
+		}
+		fmt.Printf("\nPossible solution:\n%s\n", answer)
+		return nil
 	}
 
 	steps := []build.Step{}
@@ -78,7 +96,7 @@ func search(db database.DataBase, steps []build.Step) error {
 			fmt.Printf("- id: %s\n- duration: %v\n\nLog:\n%s\n",
 				step.ID, step.Duration, strings.Join(step.Lines, "\n"))
 
-			answer, err := db.Search(step)
+			answer, err := db.Search(step.Lines)
 			if err != nil {
 				return fmt.Errorf("can't find possible solution: %v", err)
 			}

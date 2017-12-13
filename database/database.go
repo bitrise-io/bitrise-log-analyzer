@@ -9,12 +9,11 @@ import (
 	"regexp"
 
 	"github.com/bitrise-io/go-utils/command/git"
-	"github.com/bitrise-tools/bitrise-log-analyzer/build"
 )
 
 const repo = "https://github.com/bitrise-tools/bitrise-log-analyzer-patterns.git"
 
-var workDir = filepath.Join(os.Getenv("HOME"), ".bitrise-log-analyzer")
+var dir = filepath.Join(os.Getenv("HOME"), ".bitrise-log-analyzer")
 
 type DataBase struct {
 	Data []Item `json:"data"`
@@ -25,14 +24,14 @@ type Item struct {
 	Answer  string `json:"answer"`
 }
 
-func (db DataBase) Search(step build.Step) (string, error) {
+func (db DataBase) Search(lines []string) (string, error) {
 	for _, item := range db.Data {
 		r, err := regexp.Compile(item.Pattern)
 		if err != nil {
 			fmt.Printf("can't compile regexp (%s): %v\n", item.Pattern, err)
 			continue
 		}
-		for _, line := range step.Lines {
+		for _, line := range lines {
 			if r.MatchString(line) {
 				return item.Answer, nil
 			}
@@ -47,18 +46,18 @@ func New() (DataBase, error) {
 		return DataBase{}, err
 	}
 
-	patternsPath := filepath.Join(workDir, "patterns.json")
-	patternsFile, err := os.Open(patternsPath)
+	path := filepath.Join(dir, "patterns.json")
+	file, err := os.Open(path)
 	if err != nil {
 		return DataBase{}, err
 	}
 	defer func() {
-		if cerr := patternsFile.Close(); err == nil {
+		if cerr := file.Close(); err == nil {
 			err = cerr
 		}
 	}()
 
-	if err := json.NewDecoder(patternsFile).Decode(&db); err != nil {
+	if err := json.NewDecoder(file).Decode(&db); err != nil {
 		return DataBase{}, err
 	}
 	return db, nil
@@ -66,12 +65,12 @@ func New() (DataBase, error) {
 
 func initRepo() error {
 	var g git.Git
-	g, err := git.New(workDir)
+	g, err := git.New(dir)
 	if err != nil {
 		return err
 	}
 
-	if file, err := os.Stat(filepath.Join(workDir, ".git")); err == nil && file.IsDir() {
+	if file, err := os.Stat(filepath.Join(dir, ".git")); err == nil && file.IsDir() {
 		return g.Pull().SetStdout(os.Stdout).SetStderr(os.Stderr).Run()
 	}
 
