@@ -14,11 +14,13 @@ var raw *bool
 
 // scanCmd represents the scan command
 var scanCmd = &cobra.Command{
-	Use:   "scan",
-	Short: "Scan a log",
-	Long:  `Scan a log`,
-	Args:  cobra.MinimumNArgs(1),
-	RunE:  scan,
+	Use:           "scan",
+	Short:         "Scan a log",
+	Long:          `Scan a log`,
+	Args:          cobra.MinimumNArgs(1),
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	RunE:          scan,
 }
 
 func init() {
