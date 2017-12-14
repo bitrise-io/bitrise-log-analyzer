@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"strconv"
 	"strings"
 	"time"
@@ -37,24 +35,22 @@ func scan(cmd *cobra.Command, args []string) error {
 	}
 
 	if *raw {
-		content, err := ioutil.ReadFile(logFilePath)
-		if err != nil {
-			return err
-		}
-		lines := strings.Split(string(content), "\n")
-		answer, err := db.Search(lines)
-		if err != nil {
-			return fmt.Errorf("can't find possible solution: %v", err)
-		}
-		fmt.Printf("\nPossible solution:\n%s\n", answer)
-		return nil
+		return db.SearchInRawLog(logFilePath)
 	}
 
-	steps := []scanner.Step{}
+	steps := new([]scanner.Step)
+	if err := scanner.WalkLogFile(logFilePath, parseLog(steps)); err != nil {
+		return err
+	}
+
+	return db.SearchInSteps(*steps)
+}
+
+func parseLog(steps *[]scanner.Step) scanner.WalkLogFn {
 	scanned := true
 	var currentStep *scanner.Step
 
-	if err := scanner.WalkLogFile(logFilePath, func(line string, lineType scanner.LogLineType) {
+	return func(line string, lineType scanner.LogLineType) {
 		switch lineType {
 		case scanner.StepInfoHeader:
 			if scanned {
@@ -76,33 +72,11 @@ func scan(cmd *cobra.Command, args []string) error {
 					fmt.Printf("Can't get duration from %s, error: %v\n", line, err)
 				}
 				currentStep.Duration = dur
-				steps = append(steps, *currentStep)
+				*steps = append(*steps, *currentStep)
 			}
 		}
 		scanned = true
-	}); err != nil {
-		return err
 	}
-
-	return search(db, steps)
-}
-
-func search(db scanner.Database, steps []scanner.Step) error {
-	for _, step := range steps {
-		if step.Status == scanner.Failed {
-			fmt.Println("Failed step:")
-			fmt.Printf("- id: %s\n- duration: %v\n\nLog:\n%s\n",
-				step.ID, step.Duration, strings.Join(step.Lines, "\n"))
-
-			answer, err := db.Search(step.Lines)
-			if err != nil {
-				return fmt.Errorf("can't find possible solution: %v", err)
-			}
-			fmt.Printf("\nPossible solution:\n%s\n", answer)
-			return nil
-		}
-	}
-	return errors.New("There was no failed step")
 }
 
 func parseHeader(line, field string) string {
