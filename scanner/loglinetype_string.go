@@ -4,13 +4,15 @@ package scanner
 
 import "fmt"
 
-const _LogLineType_name = "BeforeFirstStepStepInfoHeaderStepLogStepInfoFooterBetweenStepsBuildSummaryStepInfoHeaderOrBuildSummarySectionStarterAfterBuildSummary"
+// LogLineTypeName ...
+const LogLineTypeName = "BeforeFirstStepStepInfoHeaderStepLogStepInfoFooterBetweenStepsBuildSummaryStepInfoHeaderOrBuildSummarySectionStarterAfterBuildSummary"
 
-var _LogLineType_index = [...]uint8{0, 15, 29, 36, 50, 62, 74, 116, 133}
+// LogLineTypeIndex ...
+var LogLineTypeIndex = [...]uint8{0, 15, 29, 36, 50, 62, 74, 116, 133}
 
 func (i LogLineType) String() string {
-	if i < 0 || i >= LogLineType(len(_LogLineType_index)-1) {
+	if i < 0 || i >= LogLineType(len(LogLineTypeIndex)-1) {
 		return fmt.Sprintf("LogLineType(%d)", i)
 	}
-	return _LogLineType_name[_LogLineType_index[i]:_LogLineType_index[i+1]]
+	return LogLineTypeName[LogLineTypeIndex[i]:LogLineTypeIndex[i+1]]
 }

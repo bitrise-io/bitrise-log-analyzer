@@ -1,9 +1,15 @@
-// Copyright © 2016 NAME HERE <EMAIL ADDRESS>
-
 package main
 
-import "github.com/bitrise-tools/bitrise-log-analyzer/cmd"
+import (
+	"fmt"
+	"os"
+
+	"github.com/bitrise-tools/bitrise-log-analyzer/cmd"
+)
 
 func main() {
-	cmd.Execute()
+	if err := cmd.RootCmd.Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
 }

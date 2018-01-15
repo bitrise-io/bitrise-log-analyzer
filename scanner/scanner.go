@@ -3,7 +3,6 @@ package scanner
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"regexp"
 
@@ -15,22 +14,15 @@ import (
 // LogLineType ...
 type LogLineType int
 
+// consts
 const (
-	// BeforeFirstStep ...
 	BeforeFirstStep LogLineType = iota
-	// StepInfoHeader ...
 	StepInfoHeader
-	// StepLog ...
 	StepLog
-	// StepInfoFooter ...
 	StepInfoFooter
-	// BetweenSteps ...
 	BetweenSteps
-	// BuildSummary ...
 	BuildSummary
-	// StepInfoHeaderOrBuildSummarySectionStarter ...
 	StepInfoHeaderOrBuildSummarySectionStarter
-	// AfterBuildSummary ...
 	AfterBuildSummary
 )
 
@@ -41,11 +33,11 @@ type WalkLogFn func(line string, lineType LogLineType)
 func WalkLogFile(logFilePath string, walkFn WalkLogFn) error {
 	file, err := os.Open(logFilePath)
 	if err != nil {
-		return fmt.Errorf("Failed to read log file (%s), error: %s", logFilePath, err)
+		return fmt.Errorf("failed to read log file (%s), error: %v", logFilePath, err)
 	}
 	defer func() {
-		if err := file.Close(); err != nil {
-			log.Println(" [!] Failed to close file, error: ", err)
+		if cerr := file.Close(); err == nil {
+			err = cerr
 		}
 	}()
 
